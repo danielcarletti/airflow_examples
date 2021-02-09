@@ -1,15 +1,18 @@
 from datetime import timedelta
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
-from airflow.operators.bash import BashOperator
+from airflow.operators.bash_operator import BashOperator
 from airflow.utils.dates import days_ago
 import yaml
 import importlib
-with open("config.yaml", 'r') as yaml_stream:
+import os
+
+with open(os.path.join(os.path.dirname(__file__), "config.yaml"), 'r') as yaml_stream:
     try:
         config = yaml.safe_load(yaml_stream)
     except yaml.YAMLError as exc:
         print(exc)
+
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
@@ -46,7 +49,6 @@ for job, configs in config.items():
                 imported_module = importlib.import_module(module)
                 function_object = getattr(imported_module, function)
                 function_object()
-            
             
             operator = PythonOperator(
                 task_id='my_python_operator',
